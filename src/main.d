@@ -116,7 +116,7 @@ void run_fun_body(string body, bool execute = true, string toplevel_name = "")
         {
             Request r;
 
-            if (lex.strip().length > 1)
+            if (lex.strip().length > 0)
             {
                 arg = arg ~ lex.strip();
                 lex = "";
