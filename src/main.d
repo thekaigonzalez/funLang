@@ -54,7 +54,7 @@ Variant add(string[] args) {
 
 they'll work like this:
 
-fn main() {
+fn main {
     print [+add a b]
 
 they'll especially be useful in variable situations, where, using code in
