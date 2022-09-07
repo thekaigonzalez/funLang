@@ -2,6 +2,7 @@ import std.stdio;
 import std.file;
 import std.string;
 import std.conv;
+import std.variant;
 import core.stdc.stdlib;
 
 struct Request
@@ -26,10 +27,54 @@ void executeRequest(Request r)
 {
     if (r.action == "print")
     {
-        writeln(r.args[0]);
+      writeln(r.args[0]);
     } else if (r.action == "run") {
-        runFunction(funclist[r.args[0]]);
+      runFunction(funclist[r.args[0]]);
+    } else {
+      fenv[r.action](r.args);
     }
+}
+
+Variant[] convertToVariants(string[] old_arr) {
+  Variant[] new_arr;
+
+  foreach (string n ; old_arr) new_arr~=Variant(n);
+  return new_arr;
+}
+
+Variant add(string[] args) {
+  Variant[] Vargs = convertToVariants(args);
+
+  writeln(Vargs[0] + Vargs[1]);
+
+  return Variant(0);
+}
+
+/* planning to add lambda expressions/unknown host expressions
+
+they'll work like this:
+
+fn main() {
+    print [+add a b]
+
+they'll especially be useful in variable situations, where, using code in
+one place isn't as helpful.
+
+you also can't print added results, only use whatever the function provides.
+
+add a b
+
+*/
+
+void fun_error(string fileheader, string msg) {
+    writeln(fileheader ~ ": error: " ~ msg);
+}
+
+Variant[string] environment; /* "_" because it matches with the 'scope' keyword lol */
+Variant function(string[])[string] fenv;
+
+Variant get_variable(string name) {
+  return (name in environment) ? environment[name] : Variant(null);
 }
 
 void run_fun_body(string body, bool execute = true, string toplevel_name = "")
@@ -41,6 +86,7 @@ void run_fun_body(string body, bool execute = true, string toplevel_name = "")
     string fname;
 
     string[] arg;
+    
     Function l;
 
     state = 0;
@@ -111,8 +157,11 @@ void run_fun_basic(string code)
     int state;
 
     string cache;
+    string cache2;
 
     state = 0;
+
+    string fileheader = "";
 
     foreach (char s; code)
     {
@@ -123,13 +172,36 @@ void run_fun_basic(string code)
                 state = 1;
                 lex = "";
             }
+            else if (lex.strip() == "def") {
+                state = -2;
+            }
             else
             {
-                writeln("expected class_identifier, got `" ~ lex ~ "'");
-                writeln("unrecoverable status; exiting...");
+                fun_error(fileheader, "expected class_identifier, got `" ~ lex ~ "'");
+                fun_error(fileheader, "unrecoverable status; exiting...");
                 exit(-1);
             }
+        } 
+
+        else if (s == '(' && state == -2) {
+            state = -3;
+            lex = "";
         }
+
+        else if (s == '=' && state == -3) {
+            state = -4;
+            cache = lex.strip;
+            lex = "";
+            
+        }
+
+        else if (s == ')' && state == -4) {
+            cache2 = lex.strip;
+            environment[cache] = Variant(cache2);
+            state = 0;
+            lex = "";
+        }
+
         else if (s == '{' && state != 0)
         {
             if (state == 1)
@@ -144,11 +216,14 @@ void run_fun_basic(string code)
         }
         else if (s == '}' && state == 7)
         {
-
             run_fun_body(lex);
             state = 0;
             lex = "";
         }
+        else if ((s == '"' || s == '\'') && state == 7) state = -1;
+
+        else if ((s == '"' || s == '\'') && state == -1) state = 7;
+        
         else if (s == '}' && state == 8)
         {
 
@@ -167,6 +242,7 @@ void run_fun_basic(string code)
 
 void main(string[] args)
 {
-    run_fun_basic(to!string(read(args[1])));
-    runFunction(funclist["main"]);
+  fenv["add"] = add;
+  run_fun_basic(to!string(read(args[1])));
+  runFunction(funclist["main"]);
 }
