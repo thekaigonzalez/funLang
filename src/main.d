@@ -79,7 +79,8 @@ void run_fun_body(string body, bool execute = true, string toplevel_name = "")
             r.args = arg;
 
             if (execute)
-            executeRequest(r);
+                executeRequest(r);
+            
             else {
                 /* save function */
                 l.reqs = l.reqs ~ r;
