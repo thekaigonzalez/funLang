@@ -43,9 +43,10 @@ Variant[] convertToVariants(string[] old_arr) {
 }
 
 Variant add(string[] args) {
-  Variant[] Vargs = convertToVariants(args);
-  writeln(args);
-  writeln(Vargs[0] + Vargs[1]);
+  int m = to!int(args[0]);
+  int m2 = to!int(args[1]);
+
+  writeln(m + m2);
 
   return Variant(0);
 }
