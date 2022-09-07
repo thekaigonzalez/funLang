@@ -44,7 +44,7 @@ Variant[] convertToVariants(string[] old_arr) {
 
 Variant add(string[] args) {
   Variant[] Vargs = convertToVariants(args);
-
+  writeln(args);
   writeln(Vargs[0] + Vargs[1]);
 
   return Variant(0);
@@ -99,7 +99,7 @@ void run_fun_body(string body, bool execute = true, string toplevel_name = "")
             state = 2;
             lex = "";
         }
-        else if (s == ' ' && state == 2 && lex.strip().length > 1)
+        else if (s == ' ' && state == 2 && lex.strip().length > 0)
         {
             arg = arg ~ lex.strip();
             lex = "";
@@ -242,7 +242,7 @@ void run_fun_basic(string code)
 
 void main(string[] args)
 {
-  fenv["add"] = add;
+  fenv["add"] = &add;
   run_fun_basic(to!string(read(args[1])));
   runFunction(funclist["main"]);
 }
