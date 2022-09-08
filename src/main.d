@@ -46,9 +46,7 @@ Variant add(string[] args) {
   int m = to!int(args[0]);
   int m2 = to!int(args[1]);
 
-  writeln(m + m2);
-
-  return Variant(0);
+  return Variant(m + m2);
 }
 
 /* planning to add lambda expressions/unknown host expressions
