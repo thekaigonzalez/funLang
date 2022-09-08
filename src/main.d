@@ -157,6 +157,7 @@ void run_fun_basic(string code)
 
     string cache;
     string cache2;
+    int match = 0;
 
     state = 0;
 
@@ -185,20 +186,31 @@ void run_fun_basic(string code)
         else if (s == '(' && state == -2) {
             state = -3;
             lex = "";
+            match = 1;
         }
 
-        else if (s == '=' && state == -3) {
+        else if (s == '(' && match != 0 && state == -3) {
+            match += 1;
+        }
+
+        else if (s == '=' && state == -3 && match != 1) {
             state = -4;
             cache = lex.strip;
             lex = "";
             
         }
 
-        else if (s == ')' && state == -4) {
+        else if (s == ')' && match != 1) {
+            match -= 1;
+            lex ~= s;
+        }
+
+        else if (s == ')' && state == -4 && match == 1) {
             cache2 = lex.strip;
             environment[cache] = Variant(cache2);
             state = 0;
             lex = "";
+            match = 0;
         }
 
         else if (s == '{' && state != 0)
